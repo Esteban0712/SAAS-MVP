@@ -27,6 +27,9 @@ pnpm-debug.log*
 .turbo/
 *.tsbuildinfo
 
+# Cliente Prisma generado
+backend/src/generated/prisma/
+
 # Archivos temporales
 tmp/
 temp/
@@ -54,4 +57,3 @@ Desktop.ini
 docker-compose.local.yml
 docker-compose.override.local.yml
 *.docker.local
-

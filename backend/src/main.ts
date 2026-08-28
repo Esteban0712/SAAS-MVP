@@ -6,6 +6,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT', 3000);
   const apiPrefix = configService.get<string>('API_PREFIX', 'api');

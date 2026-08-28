@@ -11,6 +11,8 @@ import { Request, Response } from 'express';
 interface ErrorResponse {
   message?: string | string[];
   error?: string;
+  status?: string;
+  database?: string;
 }
 
 @Catch()
@@ -43,10 +45,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
       error: details.error,
       timestamp: new Date().toISOString(),
       path: request.url,
+      ...(details.status ? { status: details.status } : {}),
+      ...(details.database ? { database: details.database } : {}),
     });
   }
 
-  private getErrorResponse(exception: HttpException): Required<ErrorResponse> {
+  private getErrorResponse(exception: HttpException): ErrorResponse {
     const response = exception.getResponse();
 
     if (typeof response === 'string') {
@@ -61,6 +65,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     return {
       message: details.message ?? exception.message,
       error: details.error ?? this.getStatusLabel(exception.getStatus()),
+      status: details.status,
+      database: details.database,
     };
   }
 
