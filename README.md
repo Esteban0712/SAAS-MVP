@@ -1,6 +1,6 @@
-# Deenova MVP
+# SEDETEC MVP
 
-Deenova MVP es un SaaS modular multi-tenant para negocios de servicios.
+Sedetec MVP es un SaaS modular multi-tenant para negocios de servicios.
 
 **Estado:** MVP en construcción.
 
