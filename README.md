@@ -1,24 +1,71 @@
-# SEDETEC MVP
+# Deenova MVP
 
-Sedetec MVP es un SaaS modular multi-tenant para negocios de servicios.
+SaaS modular multi-tenant para negocios de servicios. La Fase 6 incorpora autenticación real, autorización por permisos, aislamiento tenant y gestión de usuarios y roles.
 
-**Estado:** MVP en construcción.
+## Stack
 
-## Stack principal
+- Frontend: React, TypeScript, Vite, React Router y TanStack Query.
+- Backend: NestJS, TypeScript y API REST en monolito modular.
+- Persistencia: PostgreSQL 16 y Prisma.
+- Seguridad: contraseñas Argon2id y JWT transportado exclusivamente mediante cookie HttpOnly.
 
-- Frontend: React, TypeScript y Vite.
-- Backend: NestJS y TypeScript, con arquitectura de monolito modular y API REST.
-- Base de datos: PostgreSQL.
-- ORM: Prisma.
+## Desarrollo local
 
-## Estructura básica
+1. Copia `backend/.env.example` a `backend/.env` y completa valores locales no reutilizados fuera de desarrollo.
+2. Levanta PostgreSQL:
 
-- `frontend/`: aplicación frontend.
-- `backend/`: aplicación backend.
-- `infrastructure/`: recursos de infraestructura.
-- `docs/`: documentación del proyecto.
+```bash
+cd infrastructure
+docker compose up -d postgres
+```
 
-No deben guardarse secretos, tokens, contraseñas ni credenciales reales en Git.
+3. Prepara y arranca el backend:
 
-**Fase actual:** Fase 2 — Repositorio y estructura inicial.
+```bash
+cd backend
+npm install
+npm run prisma:generate
+npm run db:migrate
+npm run db:seed
+npm run start:dev
+```
 
+4. Configura `frontend/.env` desde su ejemplo y arranca el frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+El frontend usa normalmente `http://localhost:5173` y el backend `http://localhost:3000/api`.
+
+## Seguridad y tenancy
+
+- USER tenant y PLATFORM son identidades independientes.
+- El JWT nunca se entrega a código frontend ni se guarda en web storage.
+- La cookie de sesión es `HttpOnly`, `SameSite=Lax`, limitada a `/api` y `Secure` en producción.
+- El JWT expira según `JWT_EXPIRES_IN` (`8h` por defecto); la cookie local tiene una duración máxima de 8 horas.
+- CORS permite credenciales únicamente desde `FRONTEND_URL`.
+- Toda mutación exige que el header `Origin` coincida exactamente con `FRONTEND_URL`, como defensa CSRF adicional.
+- El principal se reconstruye desde la base de datos en cada request. Estado, negocio, rol y permisos actuales se vuelven a comprobar.
+- `businessId` siempre deriva del principal autenticado. Body, query o headers no pueden cambiar el tenant efectivo.
+- Los services filtran explícitamente por `businessId`; IDs de otro tenant responden 404.
+- La autorización usa códigos de permisos, nunca nombres de rol.
+
+## Funcionalidad de Fase 6
+
+- Login tenant y plataforma, `/me`, refresh mediante cookie y logout.
+- Guards reutilizables para autenticación, tenant, plataforma y permisos.
+- API tenant de Users y Roles, sin DELETE destructivo.
+- Catálogo global Permission de solo lectura para tenants.
+- Frontend con rutas protegidas, identidad real y navegación filtrada por permisos como UX.
+- `/app/usuarios` permite listar, crear y editar usuarios, estados, roles y asignaciones de permisos.
+
+Consulta [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md) y [docs/README.md](docs/README.md) para contratos, pruebas y limitaciones.
+
+## Estado
+
+Fase actual: **Fase 6 — autenticación, autorización y gestión de acceso**. No se han iniciado módulos funcionales de clientes, agenda, servicios o ventas.
+
+Nunca deben guardarse secretos, tokens, contraseñas reales ni archivos `.env` en Git.

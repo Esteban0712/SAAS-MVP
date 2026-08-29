@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router'
 
 import { Button } from '@/components/ui/button'
+import { LogoutButton } from '@/features/auth/logout-button'
+import { useSession } from '@/features/auth/use-session'
 
 interface SectionLayoutProps {
   area: string
@@ -16,6 +18,12 @@ export function SectionLayout({
   navigation,
   actions,
 }: SectionLayoutProps) {
+  const { data: principal } = useSession()
+  const identity =
+    principal?.actorType === 'USER'
+      ? principal.displayName || principal.username
+      : principal?.username
+
   return (
     <div className="min-h-screen bg-muted/30">
       <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
@@ -38,12 +46,16 @@ export function SectionLayout({
                 </NavLink>
               </Button>
             )}
+            <span className="hidden text-sm font-medium sm:inline">
+              {identity}
+            </span>
             <div
               className="grid size-8 place-items-center rounded-full bg-muted text-xs font-semibold"
-              aria-label={`Usuario de demostración del área ${area}`}
+              aria-label={`Usuario: ${identity ?? ''}`}
             >
-              DU
+              {identity?.slice(0, 2).toUpperCase()}
             </div>
+            <LogoutButton />
           </div>
         </div>
         <nav

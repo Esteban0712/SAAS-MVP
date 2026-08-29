@@ -1,6 +1,6 @@
 # Deenova MVP — Frontend
 
-Frontend responsive del MVP de Deenova, un SaaS modular multi-tenant para negocios de servicios. Actualmente incluye los shells de Admin, Employee y Platform, navegación base y monitorización del backend; todavía no implementa autenticación ni operaciones CRUD.
+Frontend responsive del MVP de Deenova. Incluye autenticación real por cookie, áreas protegidas USER/PLATFORM y gestión tenant de usuarios, roles y permisos.
 
 ## Stack
 
@@ -34,6 +34,7 @@ No guardes secretos en variables `VITE_*`: Vite las expone al navegador. El arch
 npm run dev
 npm run lint
 npm run build
+npm audit
 ```
 
 El servidor de desarrollo usa normalmente `http://localhost:5173`.
@@ -66,12 +67,23 @@ Tailwind CSS proporciona los estilos y responsive. La base visual utiliza compon
 
 ## API y health
 
-`src/api/client.ts` centraliza las solicitudes con `fetch`, toma la base URL de `VITE_API_URL` y transforma fallos HTTP o de red en errores públicos sanitizados.
+`src/api/client.ts` centraliza las solicitudes con `fetch`, usa `credentials: include`, toma la base URL de `VITE_API_URL` y transforma fallos HTTP o de red en errores públicos sanitizados.
 
 El módulo `src/features/health/` consulta `GET /health` mediante TanStack Query. El dashboard muestra los estados de carga, servicio disponible y backend no disponible. Cuando existe un error, la consulta reintenta periódicamente para recuperarse sin reiniciar el frontend.
 
+## Auth y gestión de acceso
+
+- `/login` permite seleccionar acceso tenant o plataforma mediante React Hook Form y Zod.
+- `GET /auth/me` es la fuente de sesión de TanStack Query y recupera la sesión tras refresh.
+- `/app/*` y `/employee/*` requieren USER; `/platform/*` requiere PLATFORM.
+- Logout invalida y limpia la caché antes de volver a `/login`.
+- No se almacena JWT en web storage: el navegador solo administra la cookie HttpOnly.
+- La navegación se oculta según permisos únicamente como UX; el backend autoriza cada request.
+- `/app/usuarios` lista, crea y edita Users, estados y roles; también gestiona Roles y sus Permissions. Password solo se solicita al crear un User.
+
 ## Limitaciones actuales
 
-- Sin autenticación, guards ni RBAC.
-- Sin CRUD ni formularios conectados a la API.
+- No hay recuperación o reset de contraseña.
+- No hay DELETE de Users o Roles.
+- No existe aún UI funcional para clientes, agenda, empleados, servicios o ventas.
 - Los indicadores del dashboard son datos DEMO locales y ficticios.

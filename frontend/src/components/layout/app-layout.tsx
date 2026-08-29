@@ -9,10 +9,17 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { appNavigation } from '@/features/navigation/navigation-items'
+import { LogoutButton } from '@/features/auth/logout-button'
+import { useSession } from '@/features/auth/use-session'
 
 export function AppLayout() {
   const { pathname } = useLocation()
+  const { data: principal } = useSession()
   const currentPage = appNavigation.find((item) => item.href === pathname)
+  const identity =
+    principal?.actorType === 'USER'
+      ? principal.displayName || principal.username
+      : principal?.username
 
   return (
     <SidebarProvider>
@@ -34,12 +41,16 @@ export function AppLayout() {
               <Button size="sm" className="hidden sm:inline-flex">
                 Nueva cita
               </Button>
+              <span className="hidden text-sm font-medium sm:inline">
+                {identity}
+              </span>
               <div
                 className="grid size-8 place-items-center rounded-full bg-muted text-xs font-semibold"
-                aria-label="Usuario de demostración: Admin Demo"
+                aria-label={`Usuario: ${identity ?? ''}`}
               >
-                AD
+                {identity?.slice(0, 2).toUpperCase()}
               </div>
+              <LogoutButton />
             </div>
           </div>
         </header>

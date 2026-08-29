@@ -3,10 +3,12 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { AppLayout } from '@/components/layout/app-layout'
 import { EmployeeLayout } from '@/components/layout/employee-layout'
 import { PlatformLayout } from '@/components/layout/platform-layout'
+import { ProtectedRoute } from '@/features/auth/protected-route'
 import { DashboardPage } from '@/pages/dashboard-page'
 import { LoginPage } from '@/pages/login-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 import { PlaceholderPage } from '@/pages/placeholder-page'
+import { UserManagementPage } from '@/pages/user-management-page'
 
 export const router = createBrowserRouter([
   {
@@ -19,7 +21,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/app',
-    element: <AppLayout />,
+    element: (
+      <ProtectedRoute actorType="USER">
+        <AppLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },
@@ -45,7 +51,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'usuarios',
-        element: <PlaceholderPage eyebrow="Administración" title="Usuarios" />,
+        element: <UserManagementPage />,
       },
       {
         path: 'configuracion',
@@ -57,7 +63,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/employee',
-    element: <EmployeeLayout />,
+    element: (
+      <ProtectedRoute actorType="USER">
+        <EmployeeLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <Navigate to="today" replace /> },
       {
@@ -76,7 +86,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/platform',
-    element: <PlatformLayout />,
+    element: (
+      <ProtectedRoute actorType="PLATFORM">
+        <PlatformLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <Navigate to="businesses" replace /> },
       {

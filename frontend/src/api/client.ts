@@ -10,21 +10,32 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(path: string): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
   if (!apiBaseUrl) {
     throw new ApiError(null)
   }
 
   try {
     const response = await fetch(`${apiBaseUrl}${path}`, {
-      headers: { Accept: 'application/json' },
+      ...init,
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json',
+        ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+        ...init.headers,
+      },
     })
 
     if (!response.ok) {
       throw new ApiError(response.status)
     }
 
-    return (await response.json()) as T
+    return response.status === 204
+      ? (undefined as T)
+      : ((await response.json()) as T)
   } catch (error) {
     if (error instanceof ApiError) {
       throw error
