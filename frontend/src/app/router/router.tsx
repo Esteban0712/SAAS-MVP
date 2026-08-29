@@ -5,6 +5,7 @@ import { EmployeeLayout } from '@/components/layout/employee-layout'
 import { PlatformLayout } from '@/components/layout/platform-layout'
 import { ProtectedRoute } from '@/features/auth/protected-route'
 import { DashboardPage } from '@/pages/dashboard-page'
+import { CustomersPage } from '@/pages/customers-page'
 import { LoginPage } from '@/pages/login-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 import { PlaceholderPage } from '@/pages/placeholder-page'
@@ -35,7 +36,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'clientes',
-        element: <PlaceholderPage eyebrow="Directorio" title="Clientes" />,
+        element: <CustomersPage />,
       },
       {
         path: 'empleados',

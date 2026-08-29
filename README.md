@@ -1,6 +1,6 @@
 # Deenova MVP
 
-SaaS modular multi-tenant para negocios de servicios. La Fase 6 incorpora autenticación real, autorización por permisos, aislamiento tenant y gestión de usuarios y roles.
+SaaS modular multi-tenant para negocios de servicios. Incluye autenticación real, autorización por permisos, aislamiento tenant y gestión de usuarios, roles y clientes.
 
 ## Stack
 
@@ -62,10 +62,19 @@ El frontend usa normalmente `http://localhost:5173` y el backend `http://localho
 - Frontend con rutas protegidas, identidad real y navegación filtrada por permisos como UX.
 - `/app/usuarios` permite listar, crear y editar usuarios, estados, roles y asignaciones de permisos.
 
+## Clientes — Fase 7
+
+- API REST tenant-scoped para listar, consultar, crear y actualizar Customers, sin DELETE.
+- Acceso de lectura mediante `customers.view` y escritura mediante `customers.manage`.
+- Búsqueda por nombre, teléfono o email y paginación con metadatos.
+- Normalización consistente de nombre, teléfono, email y notas.
+- El teléfono es único dentro de cada negocio; puede repetirse entre tenants distintos.
+- `/app/clientes` ofrece listado responsive, búsqueda, paginación, creación, edición y cambio de estado.
+
 Consulta [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md) y [docs/README.md](docs/README.md) para contratos, pruebas y limitaciones.
 
 ## Estado
 
-Fase actual: **Fase 6 — autenticación, autorización y gestión de acceso**. No se han iniciado módulos funcionales de clientes, agenda, servicios o ventas.
+Fase actual: **Fase 7 — gestión de clientes**. No se han iniciado módulos funcionales de agenda, empleados, servicios o ventas.
 
 Nunca deben guardarse secretos, tokens, contraseñas reales ni archivos `.env` en Git.

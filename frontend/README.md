@@ -1,6 +1,6 @@
 # Deenova MVP — Frontend
 
-Frontend responsive del MVP de Deenova. Incluye autenticación real por cookie, áreas protegidas USER/PLATFORM y gestión tenant de usuarios, roles y permisos.
+Frontend responsive del MVP de Deenova. Incluye autenticación real por cookie, áreas protegidas USER/PLATFORM y gestión tenant de usuarios, roles, permisos y clientes.
 
 ## Stack
 
@@ -81,9 +81,16 @@ El módulo `src/features/health/` consulta `GET /health` mediante TanStack Query
 - La navegación se oculta según permisos únicamente como UX; el backend autoriza cada request.
 - `/app/usuarios` lista, crea y edita Users, estados y roles; también gestiona Roles y sus Permissions. Password solo se solicita al crear un User.
 
+## Clientes
+
+`/app/clientes` consume la API real mediante TanStack Query. Presenta un listado responsive en tarjetas con búsqueda por submit, paginación y total; permite crear, editar y cambiar el estado activo con React Hook Form y Zod. Tras una mutación invalida únicamente los listados de Customers.
+
+La página no consulta Customers sin `customers.view` y oculta las acciones de escritura sin `customers.manage`; esta ocultación es solo UX y el backend sigue autorizando cada llamada. Los formularios nunca incluyen `businessId` ni `branchId`, no usan mocks y muestran estados de carga, vacío, error, guardado, validación, duplicado 409 y forbidden 403.
+
 ## Limitaciones actuales
 
 - No hay recuperación o reset de contraseña.
 - No hay DELETE de Users o Roles.
-- No existe aún UI funcional para clientes, agenda, empleados, servicios o ventas.
+- No hay DELETE de Customers ni CRM avanzado.
+- No existe aún UI funcional para agenda, empleados, servicios o ventas.
 - Los indicadores del dashboard son datos DEMO locales y ficticios.

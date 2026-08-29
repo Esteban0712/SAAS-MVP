@@ -29,7 +29,7 @@ Cada request autenticado vuelve a consultar PostgreSQL. Usuarios, negocios o rol
 
 `businessId` deriva siempre del principal autenticado. Las entradas de cliente no pueden seleccionar el tenant y los services Prisma filtran explícitamente por `businessId`. Una búsqueda por ID fuera del tenant devuelve 404.
 
-Los códigos utilizados son `users.view`, `users.manage`, `roles.view` y `roles.manage`. Permission es un catálogo global de solo lectura; cada Role pertenece a un Business.
+Los códigos utilizados incluyen `users.view`, `users.manage`, `roles.view`, `roles.manage`, `customers.view` y `customers.manage`. Permission es un catálogo global de solo lectura; cada Role pertenece a un Business.
 
 ## Endpoints de Fase 6
 
@@ -44,6 +44,21 @@ Los códigos utilizados son `users.view`, `users.manage`, `roles.view` y `roles.
 | GET/POST | `/api/roles` | `roles.view` / `roles.manage` |
 | GET/PATCH | `/api/roles/:id` | `roles.view` / `roles.manage` |
 | GET | `/api/permissions` | `roles.view` |
+
+## Customers — Fase 7
+
+Customer utiliza el modelo Prisma existente: `id`, `businessId`, `branchId` nullable, `name`, `phone`, `active`, `email`, `notes`, `createdAt` y `updatedAt`. `businessId` deriva siempre del principal y `branchId` es únicamente de lectura; ninguno se acepta en los DTO de escritura.
+
+| Método | Ruta | Acceso |
+| --- | --- | --- |
+| GET | `/api/customers?search=&page=&pageSize=` | `customers.view` |
+| POST | `/api/customers` | `customers.manage` |
+| GET | `/api/customers/:id` | `customers.view` |
+| PATCH | `/api/customers/:id` | `customers.manage` |
+
+Create requiere `name` y `phone`; admite `email`, `notes` y `active`. Update admite esos mismos campos opcionales y rechaza un PATCH vacío. El nombre se recorta y colapsa espacios, el email se recorta y pasa a minúsculas, las notas vacías pasan a `null`, y el teléfono elimina espacios y `()-.` conservando solo un `+` inicial y dígitos. No se infiere país ni se fabrica E.164.
+
+El listado usa página 1 y 20 elementos por defecto, admite hasta 100, busca por nombre/teléfono/email y devuelve `items`, `page`, `pageSize`, `total` y `totalPages`. El teléfono normalizado es único por negocio: el precheck y Prisma P2002 producen un 409 saneado, mientras el mismo teléfono puede existir en tenants distintos. Detail y update filtran por `id + businessId`; un ID cross-tenant responde 404. No existe DELETE de Customers.
 
 No existen DELETE destructivos ni endpoint de reset de contraseña en esta fase.
 
@@ -93,4 +108,4 @@ npm run db:status
 npm audit
 ```
 
-Los e2e requieren PostgreSQL, `JWT_SECRET` y `DEV_SEED_PASSWORD` locales. Los fixtures restauran los hashes y datos temporales que modifican.
+Los e2e requieren PostgreSQL, `JWT_SECRET` y `DEV_SEED_PASSWORD` locales. Los fixtures restauran los hashes y datos temporales que modifican. La suite Customers cubre CRUD sin DELETE, búsqueda, paginación, normalización, validación, duplicados, permisos, manipulación de tenant y 404 cross-tenant.

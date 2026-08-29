@@ -21,3 +21,13 @@ La ocultación de navegación se considera únicamente UX. El backend continúa 
 Las suites cubren login, cookie HttpOnly, logout, actores inactivos, permisos dinámicos, separación USER/PLATFORM, manipulación de `businessId`, aislamiento A/B, 404 cross-tenant y gestión de Users/Roles/Permissions.
 
 Los comandos completos están documentados en los README de backend y frontend.
+
+## Fase 7 — Customers
+
+Customers es el primer CRUD funcional tenant-scoped. El backend aplica `customers.view` a list/detail y `customers.manage` a create/update. Todas las consultas Prisma incluyen el `businessId` reconstruido desde el principal; los IDs ajenos responden 404 y valores manipulados por el cliente no seleccionan tenant.
+
+El API expone `GET/POST /api/customers` y `GET/PATCH /api/customers/:id`, sin DELETE. El listado busca por nombre, teléfono y email, pagina con metadatos y ordena por nombre e ID. Nombre, teléfono, email y notas se normalizan antes de persistir; el duplicado de teléfono dentro del mismo negocio devuelve 409 saneado y entre negocios está permitido.
+
+La UI `/app/clientes` usa el cliente API central, TanStack Query, React Hook Form, Zod y componentes shadcn existentes. Incluye listado responsive, búsqueda, paginación, create/edit/active y estados de error saneados. Los e2e cubren auth, permisos actuales, aislamiento A/B, cross-tenant 404, validación, normalización y duplicados.
+
+Limitaciones: no DELETE, historial comercial, etiquetas, importación, merge de duplicados ni otras funciones CRM.
