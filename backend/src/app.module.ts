@@ -1,5 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AppointmentsModule } from './appointments/appointments.module';
 import { AuthModule } from './auth/auth.module';
 import { OriginValidationMiddleware } from './common/middleware/origin-validation.middleware';
 import { CustomersModule } from './customers/customers.module';
@@ -23,6 +24,7 @@ import { UsersModule } from './users/users.module';
     CustomersModule,
     EmployeesModule,
     ServicesModule,
+    AppointmentsModule,
   ],
 })
 export class AppModule implements NestModule {

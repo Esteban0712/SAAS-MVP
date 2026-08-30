@@ -12,6 +12,7 @@ La capa de datos utiliza PostgreSQL 16 y Prisma 7.10.0. El schema inicial contie
 - Horarios de `EmployeeSchedule` almacenados como PostgreSQL `TIME`.
 - `SaleItem.quantity` es un entero.
 - Se conservan snapshots históricos en `AppointmentService`, `SaleItem` y `Receipt.dataJson` para evitar que cambios posteriores alteren documentos o transacciones previas.
+- La migración aditiva `prevent_appointment_overlap` habilita `btree_gist` y añade una exclusion constraint GiST que impide solapamientos por Employee para Appointments PENDING, CONFIRMED o IN_PROGRESS sobre intervalos `[startAt,endAt)`.
 
 Las acciones referenciales siguen una política conservadora: las entidades históricas y de negocio usan principalmente `Restrict` o `SetNull`. `Cascade` se limita a joins seguros como `RolePermission` y `EmployeeService`.
 

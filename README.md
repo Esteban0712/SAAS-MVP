@@ -79,10 +79,20 @@ El frontend usa normalmente `http://localhost:5173` y el backend `http://localho
 - Price se conserva como decimal exacto en string y duration se expresa en minutos enteros.
 - `/app/empleados` y `/app/servicios` ofrecen gestión responsive con permisos y datos reales.
 
+## Agenda y citas — Fase 9
+
+- API tenant-scoped para disponibilidad y gestión de Appointments, protegida por `appointments.view/manage`.
+- Availability combina `EmployeeSchedule` local, servicios asignados y duración completa con granularidad de 15 minutos.
+- Los horarios semanales se interpretan en `Business.timezone`; las citas se persisten como instantes UTC y la API contempla transiciones DST ambiguas o inexistentes.
+- `AppointmentService` conserva snapshots inmutables de nombre, duración y precio decimal del servicio.
+- PostgreSQL impide reservas bloqueantes solapadas mediante una exclusion constraint sobre `[startAt,endAt)`; los conflictos concurrentes responden 409.
+- `/app/agenda` ofrece agenda diaria responsive, detalle, creación, edición, reprogramación, estados y selección de availability real.
+- Limitación actual: no existen holidays, time-off complejo ni excepciones de jornada por fecha.
+
 Consulta [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md) y [docs/README.md](docs/README.md) para contratos, pruebas y limitaciones.
 
 ## Estado
 
-Fase actual: **Fase 8 — gestión de empleados, servicios y horarios semanales**. No se han iniciado agenda, disponibilidad por fecha, citas o ventas.
+Fase actual: **Fase 9 — agenda, disponibilidad y citas**. Ventas continúa fuera del alcance actual.
 
 Nunca deben guardarse secretos, tokens, contraseñas reales ni archivos `.env` en Git.

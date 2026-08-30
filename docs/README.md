@@ -40,7 +40,7 @@ Las asignaciones EmployeeService y los horarios se reemplazan completamente con 
 
 El frontend proporciona `/app/empleados` y `/app/servicios`, formularios responsive, selector read-only de Branch, asignación de catálogo y editor semanal sin FullCalendar. Las suites unit/E2E cubren CRUD, permisos, tenancy, relaciones, Decimal, TIME, validaciones y atomicidad.
 
-## Preparación exacta para Fase 9
+## Base de workforce utilizada por Fase 9
 
 - Employee utilizable: `Employee.active === true`; además debe pertenecer al tenant y a la Branch requerida.
 - Service utilizable: `Service.active === true` y pertenece al tenant.
@@ -49,9 +49,17 @@ El frontend proporciona `/app/empleados` y `/app/servicios`, formularios respons
 - Servicios del Employee: filas `EmployeeService` cuyo `employeeId` y Service resuelven dentro del mismo tenant.
 - Horario base: filas `EmployeeSchedule { dayOfWeek, startTime, endTime, active }` del Employee.
 - Solo schedules con `active === true` participan en un cálculo futuro.
-- `TIME(0)` es hora local de pared en `Business.timezone`; no es un instante UTC y debe combinarse con una fecha local únicamente en Fase 9.
+- `TIME(0)` es hora local de pared en `Business.timezone`; no es un instante UTC y se combina con la fecha local al calcular availability.
 - Cada bloque tiene semántica `[start,end)`: el inicio incluye y el final excluye; bloques adyacentes no se solapan.
 - Orden canónico: MONDAY a SUNDAY, luego `startTime ASC`, `endTime ASC`.
-- Aún faltan excepciones por fecha, holidays, time-off y overrides de jornada. No deben inferirse de EmployeeSchedule.
+- Aún faltan excepciones por fecha, holidays, time-off y overrides de jornada. No se infieren de EmployeeSchedule.
 
-Esta documentación no calcula disponibilidad por fecha ni introduce citas o agenda.
+## Fase 9 — Appointments y Agenda
+
+Availability usa la estructura anterior para generar candidatos cada 15 minutos. La duración efectiva es la suma completa de los Services seleccionados y debe caber dentro de un único bloque. Los intervalos son `[start,end)`, por lo que citas y bloques adyacentes están permitidos. PENDING, CONFIRMED e IN_PROGRESS bloquean; los estados terminales y RESCHEDULED liberan el intervalo.
+
+Las horas semanales se interpretan en la zona IANA del Business y se convierten a UTC mediante Luxon. Una hora local inexistente por DST no produce slot; una hora ambigua puede representar sus instantes UTC válidos. El frontend nunca calcula disponibilidad: usa el UTC devuelto por el backend y presenta las horas con el timezone recibido en el listado.
+
+Create, edit y reschedule son atómicos. AppointmentService captura snapshots de nombre, duración y precio decimal. Una exclusion constraint PostgreSQL es la garantía final frente a doble reserva, con 409 saneado; RESCHEDULE bloquea además la cita original para impedir sucesoras concurrentes. Todas las relaciones se validan dentro del tenant y `businessId` procede exclusivamente del principal.
+
+La Agenda diaria incluye navegación por fecha, filtro de Employee, cards responsive, detalle, create/edit/reschedule/status/cancel y refresco de listado/availability ante mutaciones o conflictos. Limitaciones conocidas: sin holidays, time-off complejo, recurrencia, drag/drop, FullCalendar ni disponibilidad basada en excepciones por fecha.

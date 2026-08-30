@@ -132,3 +132,23 @@ Los modelos reales utilizados son:
 Employees y Services usan búsqueda, página 1, pageSize 20 y máximo 100, con respuesta `items/page/pageSize/total/totalPages`. Branches es lectura mínima tenant-scoped y no introduce CRUD Branch. Los DTO rechazan campos desconocidos, UUID inválidos, PATCH vacío, duración fuera de `1..1440` y price negativo, fuera de rango o con más de dos decimales. Price entra y sale como string fijo de dos decimales y se persiste mediante `Prisma.Decimal`.
 
 El PUT de servicios asignados valida Employee y todos los Service contra el mismo tenant, rechaza IDs duplicados y reemplaza mediante `deleteMany + createMany` en una transacción. El PUT de schedules valida toda la colección antes de una transacción equivalente. Acepta `HH:mm` o `HH:mm:ss`, responde siempre `HH:mm:ss`, permite bloques adyacentes y rechaza `start >= end`, formato/día inválido, duplicados y solapamientos. La fecha ancla usada por Prisma para `TIME(0)` nunca forma parte del API. No existe DELETE.
+
+## Appointments y availability — Fase 9
+
+`Appointment` almacena Branch, Customer, Employee, autor, source, estado y el intervalo UTC `startAt/endAt`. `AppointmentService` conserva snapshots del nombre, `durationMinutes` y price `DECIMAL(12,2)` para que cambios posteriores del catálogo no alteren la cita histórica. La fuente de creación administrativa es `ADMIN`.
+
+| Método | Ruta | Permiso |
+| --- | --- | --- |
+| GET | `/api/appointments?from=&to=&employeeId=&branchId=&customerId=&status=&page=&pageSize=` | `appointments.view` |
+| GET | `/api/appointments/availability?branchId=&employeeId=&serviceIds=&from=&to=&excludeAppointmentId=` | `appointments.view` |
+| POST | `/api/appointments` | `appointments.manage` |
+| GET | `/api/appointments/:id` | `appointments.view` |
+| PATCH | `/api/appointments/:id` | `appointments.manage` |
+
+El listado devuelve `items/page/pageSize/total/totalPages/timezone`; `timezone` siempre procede del Business autenticado. PATCH exige una acción `EDIT`, `RESCHEDULE` o `STATUS`. Las transiciones admitidas son PENDING→CONFIRMED/CANCELLED/NO_SHOW, CONFIRMED→IN_PROGRESS/CANCELLED/NO_SHOW e IN_PROGRESS→COMPLETED/CANCELLED. PENDING, CONFIRMED e IN_PROGRESS bloquean disponibilidad; CANCELLED, COMPLETED, NO_SHOW y RESCHEDULED no bloquean.
+
+Availability valida Branch, Employee activo, EmployeeService, Service activo y EmployeeSchedule dentro del tenant. Genera slots cada 15 minutos y solo devuelve aquellos cuya duración completa cabe en un bloque `[start,end)`. `TIME(0)` es hora local de pared en `Business.timezone`; Luxon resuelve la conversión IANA a UTC, omite horas DST inexistentes y representa correctamente instantes ambiguos.
+
+La migración `prevent_appointment_overlap` añade `btree_gist` y una exclusion constraint GiST por Employee para intervalos bloqueantes `[startAt,endAt)`. Es aditiva y permite adyacencia. Create, edit y reschedule son transaccionales; RESCHEDULE bloquea la fila original para admitir una sola sucesora. PostgreSQL `23P01` se sanea como 409. Solo se reintentan, hasta dos veces, serialización/deadlock; nunca un conflicto confirmado.
+
+La UI `/app/agenda` consume el timezone del listado como autoridad, construye el día local en UTC, usa availability real y soporta detalle, creación, edición, reprogramación, estados y cancelación. Un 409 invalida agenda y availability. No existen aún time-off complejo, holidays, recurrencia, drag/drop ni FullCalendar.
