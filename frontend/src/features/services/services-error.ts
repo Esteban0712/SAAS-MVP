@@ -1,0 +1,2 @@
+import { ApiError } from '@/api/client'
+export function serviceErrorMessage(error: unknown) { if (error instanceof ApiError) { if (error.status === 403) return 'No tienes permiso para realizar esta acción.'; if (error.status === 404) return 'El servicio ya no está disponible.'; if (error.status === 400) return 'Revisa los datos introducidos.' } return 'No se pudo completar la operación. Inténtalo de nuevo.' }

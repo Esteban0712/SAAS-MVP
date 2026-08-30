@@ -71,10 +71,18 @@ El frontend usa normalmente `http://localhost:5173` y el backend `http://localho
 - El teléfono es único dentro de cada negocio; puede repetirse entre tenants distintos.
 - `/app/clientes` ofrece listado responsive, búsqueda, paginación, creación, edición y cambio de estado.
 
+## Empleados y servicios — Fase 8
+
+- CRUD sin DELETE de Employees y Services, siempre aislado por negocio.
+- Asignación completa e idempotente de Services a cada Employee.
+- Horario semanal con varios bloques por día, validación de solapamientos y reemplazo atómico.
+- Price se conserva como decimal exacto en string y duration se expresa en minutos enteros.
+- `/app/empleados` y `/app/servicios` ofrecen gestión responsive con permisos y datos reales.
+
 Consulta [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md) y [docs/README.md](docs/README.md) para contratos, pruebas y limitaciones.
 
 ## Estado
 
-Fase actual: **Fase 7 — gestión de clientes**. No se han iniciado módulos funcionales de agenda, empleados, servicios o ventas.
+Fase actual: **Fase 8 — gestión de empleados, servicios y horarios semanales**. No se han iniciado agenda, disponibilidad por fecha, citas o ventas.
 
 Nunca deben guardarse secretos, tokens, contraseñas reales ni archivos `.env` en Git.

@@ -6,9 +6,11 @@ import { PlatformLayout } from '@/components/layout/platform-layout'
 import { ProtectedRoute } from '@/features/auth/protected-route'
 import { DashboardPage } from '@/pages/dashboard-page'
 import { CustomersPage } from '@/pages/customers-page'
+import { EmployeesPage } from '@/pages/employees-page'
 import { LoginPage } from '@/pages/login-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 import { PlaceholderPage } from '@/pages/placeholder-page'
+import { ServicesPage } from '@/pages/services-page'
 import { UserManagementPage } from '@/pages/user-management-page'
 
 export const router = createBrowserRouter([
@@ -40,11 +42,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'empleados',
-        element: <PlaceholderPage eyebrow="Equipo" title="Empleados" />,
+        element: <EmployeesPage />,
       },
       {
         path: 'servicios',
-        element: <PlaceholderPage eyebrow="Catálogo" title="Servicios" />,
+        element: <ServicesPage />,
       },
       {
         path: 'ventas',

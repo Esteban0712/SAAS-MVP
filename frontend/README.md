@@ -87,10 +87,17 @@ El módulo `src/features/health/` consulta `GET /health` mediante TanStack Query
 
 La página no consulta Customers sin `customers.view` y oculta las acciones de escritura sin `customers.manage`; esta ocultación es solo UX y el backend sigue autorizando cada llamada. Los formularios nunca incluyen `businessId` ni `branchId`, no usan mocks y muestran estados de carga, vacío, error, guardado, validación, duplicado 409 y forbidden 403.
 
+## Empleados y servicios
+
+`/app/empleados` incluye listado, búsqueda, paginación, formulario con Branch tenant-scoped, estado, teléfono y notas. La edición separa Datos, Servicios y Horario: el catálogo de Services se carga bajo demanda, el PUT conserva la selección completa y el editor semanal permite varios bloques por día, active y validación previa de formato, orden y solapamientos.
+
+`/app/servicios` gestiona nombre, categoría, descripción, duración, price y active. Price permanece como string en formularios y requests; solo se presenta con símbolo monetario. Ambas páginas usan cards responsive, TanStack Query, React Hook Form y Zod, deshabilitan queries sin permiso view y ocultan mutaciones sin manage. No hay mocks, FullCalendar ni campos `businessId`/`userId` editables.
+
 ## Limitaciones actuales
 
 - No hay recuperación o reset de contraseña.
 - No hay DELETE de Users o Roles.
 - No hay DELETE de Customers ni CRM avanzado.
-- No existe aún UI funcional para agenda, empleados, servicios o ventas.
+- No hay DELETE de Employees o Services, vínculo editable Employee–User, excepciones horarias ni time-off.
+- No existe aún UI funcional para agenda, citas o ventas.
 - Los indicadores del dashboard son datos DEMO locales y ficticios.

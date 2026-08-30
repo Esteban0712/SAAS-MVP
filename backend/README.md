@@ -109,3 +109,26 @@ npm audit
 ```
 
 Los e2e requieren PostgreSQL, `JWT_SECRET` y `DEV_SEED_PASSWORD` locales. Los fixtures restauran los hashes y datos temporales que modifican. La suite Customers cubre CRUD sin DELETE, búsqueda, paginación, normalización, validación, duplicados, permisos, manipulación de tenant y 404 cross-tenant.
+
+## Employees y Services — Fase 8
+
+Los modelos reales utilizados son:
+
+- `Employee`: negocio y Branch obligatorios, `userId` nullable/read-only, nombre visible, active, teléfono, notas y timestamps.
+- `Service`: negocio, nombre, `durationMinutes`, price `DECIMAL(12,2)`, active, descripción, categoría y timestamps.
+- `EmployeeService`: unión pura con PK `(employeeId, serviceId)`, sin overrides.
+- `EmployeeSchedule`: Employee, `DayOfWeek`, `startTime/endTime TIME(0)` y active; admite varias filas por día.
+
+| Método | Ruta | Permiso |
+| --- | --- | --- |
+| GET/POST | `/api/employees` | `employees.view` / `employees.manage` |
+| GET/PATCH | `/api/employees/:id` | `employees.view` / `employees.manage` |
+| GET | `/api/employees/branches` | `employees.view` |
+| GET/PUT | `/api/employees/:id/services` | `employees.view` / `employees.manage` |
+| GET/PUT | `/api/employees/:id/schedules` | `employees.view` / `employees.manage` |
+| GET/POST | `/api/services` | `services.view` / `services.manage` |
+| GET/PATCH | `/api/services/:id` | `services.view` / `services.manage` |
+
+Employees y Services usan búsqueda, página 1, pageSize 20 y máximo 100, con respuesta `items/page/pageSize/total/totalPages`. Branches es lectura mínima tenant-scoped y no introduce CRUD Branch. Los DTO rechazan campos desconocidos, UUID inválidos, PATCH vacío, duración fuera de `1..1440` y price negativo, fuera de rango o con más de dos decimales. Price entra y sale como string fijo de dos decimales y se persiste mediante `Prisma.Decimal`.
+
+El PUT de servicios asignados valida Employee y todos los Service contra el mismo tenant, rechaza IDs duplicados y reemplaza mediante `deleteMany + createMany` en una transacción. El PUT de schedules valida toda la colección antes de una transacción equivalente. Acepta `HH:mm` o `HH:mm:ss`, responde siempre `HH:mm:ss`, permite bloques adyacentes y rechaza `start >= end`, formato/día inválido, duplicados y solapamientos. La fecha ancla usada por Prisma para `TIME(0)` nunca forma parte del API. No existe DELETE.
