@@ -12,6 +12,7 @@ import { LoginPage } from '@/pages/login-page'
 import { NotFoundPage } from '@/pages/not-found-page'
 import { PlaceholderPage } from '@/pages/placeholder-page'
 import { ServicesPage } from '@/pages/services-page'
+import { SalesPage } from '@/pages/sales-page'
 import { UserManagementPage } from '@/pages/user-management-page'
 
 export const router = createBrowserRouter([
@@ -51,7 +52,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'ventas',
-        element: <PlaceholderPage eyebrow="Operación" title="Ventas" />,
+        element: <SalesPage />,
       },
       {
         path: 'usuarios',

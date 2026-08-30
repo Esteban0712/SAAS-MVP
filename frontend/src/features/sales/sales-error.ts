@@ -1,0 +1,2 @@
+import { ApiError } from '@/api/client'
+export function saleError(error: unknown) { if (error instanceof ApiError) { if (error.status === 400) return 'Revisa los datos financieros introducidos.'; if (error.status === 403) return 'No tienes permiso para realizar esta acción.'; if (error.status === 404) return 'La venta o una relación seleccionada ya no está disponible.'; if (error.status === 409) return 'La operación entra en conflicto con el estado actual de la venta.' } return 'No se pudo completar la operación.' }

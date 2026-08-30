@@ -1,0 +1,14 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Button } from '@/components/ui/button'
+import { generateReceipt, saleKeys } from './sales-api'
+import { saleError } from './sales-error'
+import type { Receipt, Sale } from './types'
+
+export function ReceiptView({ sale, canManage }: { sale: Sale; canManage: boolean }) {
+  const client = useQueryClient()
+  const mutation = useMutation({ mutationFn: () => generateReceipt(sale.id), onSuccess: (receipt) => { client.setQueryData(saleKeys.receipt(sale.id), receipt); client.setQueryData(saleKeys.detail(sale.id), { ...sale, receipt }) } })
+  const receipt: Receipt | null = mutation.data ?? sale.receipt
+  if (!receipt) return <div className="space-y-2">{canManage && sale.status === 'PAID' ? <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>{mutation.isPending ? 'Emitiendo…' : 'Emitir recibo'}</Button> : <p className="text-sm text-muted-foreground">El recibo estará disponible cuando la venta esté pagada.</p>}{mutation.error && <p role="alert" className="text-sm text-destructive">{saleError(mutation.error)}</p>}</div>
+  return <section className="space-y-4 rounded-lg border bg-background p-5 print:fixed print:inset-0 print:z-50 print:border-0 print:p-10"><div className="flex items-start justify-between gap-3"><div><p className="text-sm text-muted-foreground">Recibo</p><h3 className="text-xl font-semibold">{receipt.receiptNumber}</h3><p className="text-sm">{new Date(receipt.generatedAt).toLocaleString()}</p></div><Button className="print:hidden" variant="outline" onClick={() => window.print()}>Imprimir / guardar</Button></div><div className="grid gap-2 sm:grid-cols-2"><p><span className="text-muted-foreground">Cliente:</span> {sale.customer?.name ?? 'Consumidor final'}</p><p><span className="text-muted-foreground">Sucursal:</span> {sale.branch.name}</p></div><div className="space-y-2 border-y py-3">{sale.items.map((item) => <div key={item.id} className="flex justify-between gap-3 text-sm"><span>{item.quantity} × {item.description}</span><span>{item.total}</span></div>)}</div><div className="ml-auto max-w-xs space-y-1 text-sm"><Line label="Subtotal" value={sale.subtotal} /><Line label="Descuento" value={sale.discountTotal} /><Line label="Impuestos" value={sale.taxTotal} /><Line label="Total" value={sale.total} strong /></div><details className="print:hidden"><summary className="cursor-pointer text-sm text-muted-foreground">Snapshot técnico</summary><pre className="mt-2 max-h-48 overflow-auto rounded bg-muted p-3 text-xs">{JSON.stringify(receipt.dataJson, null, 2)}</pre></details></section>
+}
+function Line({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) { return <div className={`flex justify-between gap-6 ${strong ? 'font-semibold' : ''}`}><span>{label}</span><span>{value}</span></div> }

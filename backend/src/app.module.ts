@@ -10,6 +10,7 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RolesModule } from './roles/roles.module';
 import { ServicesModule } from './services/services.module';
+import { SalesModule } from './sales/sales.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -25,6 +26,7 @@ import { UsersModule } from './users/users.module';
     EmployeesModule,
     ServicesModule,
     AppointmentsModule,
+    SalesModule,
   ],
 })
 export class AppModule implements NestModule {
