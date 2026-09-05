@@ -93,6 +93,6 @@ Consulta [backend/README.md](backend/README.md), [frontend/README.md](frontend/R
 
 ## Estado
 
-Fase actual: **Fase 9 — agenda, disponibilidad y citas**. Ventas continúa fuera del alcance actual.
+Fase actual: **Fase 12 — administración Platform de negocios**. Billing y planes quedan diferidos; F11/WhatsApp permanece aplazada.
 
 Nunca deben guardarse secretos, tokens, contraseñas reales ni archivos `.env` en Git.

@@ -10,7 +10,10 @@ import { CustomersPage } from '@/pages/customers-page'
 import { EmployeesPage } from '@/pages/employees-page'
 import { LoginPage } from '@/pages/login-page'
 import { NotFoundPage } from '@/pages/not-found-page'
+import { NewPlatformBusinessPage } from '@/pages/new-platform-business-page'
 import { PlaceholderPage } from '@/pages/placeholder-page'
+import { PlatformBusinessesPage } from '@/pages/platform-businesses-page'
+import { PlatformBusinessDetailPage } from '@/pages/platform-business-detail-page'
 import { ServicesPage } from '@/pages/services-page'
 import { SalesPage } from '@/pages/sales-page'
 import { UserManagementPage } from '@/pages/user-management-page'
@@ -100,21 +103,15 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="businesses" replace /> },
       {
         path: 'businesses',
-        element: (
-          <PlaceholderPage eyebrow="Plataforma" title="Negocios" />
-        ),
+        element: <PlatformBusinessesPage />,
       },
       {
         path: 'businesses/new',
-        element: (
-          <PlaceholderPage eyebrow="Plataforma" title="Nuevo negocio" />
-        ),
+        element: <NewPlatformBusinessPage />,
       },
       {
         path: 'businesses/:id',
-        element: (
-          <PlaceholderPage eyebrow="Plataforma" title="Detalle del negocio" />
-        ),
+        element: <PlatformBusinessDetailPage />,
       },
     ],
   },

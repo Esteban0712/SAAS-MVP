@@ -152,3 +152,7 @@ Availability valida Branch, Employee activo, EmployeeService, Service activo y E
 La migración `prevent_appointment_overlap` añade `btree_gist` y una exclusion constraint GiST por Employee para intervalos bloqueantes `[startAt,endAt)`. Es aditiva y permite adyacencia. Create, edit y reschedule son transaccionales; RESCHEDULE bloquea la fila original para admitir una sola sucesora. PostgreSQL `23P01` se sanea como 409. Solo se reintentan, hasta dos veces, serialización/deadlock; nunca un conflicto confirmado.
 
 La UI `/app/agenda` consume el timezone del listado como autoridad, construye el día local en UTC, usa availability real y soporta detalle, creación, edición, reprogramación, estados y cancelación. Un 409 invalida agenda y availability. No existen aún time-off complejo, holidays, recurrencia, drag/drop ni FullCalendar.
+
+## Platform Businesses — Fase 12
+
+La superficie `/api/platform/businesses` es exclusiva de PlatformUser con AuthGuard + PlatformGuard. Expone listado con search/status/paginación, create, detail, update y acciones suspend/reactivate. Create genera atómicamente Business ACTIVE, Branch principal, Role ADMIN con permisos, User owner con contraseña Argon2id y AuditLog. Slug es normalizado e inmutable, timezone es IANA, settings es read-only y status no forma parte de PATCH. Suspender preserva datos y bloquea inmediatamente sesiones tenant existentes; reactivar restaura acceso. Billing/planes están diferidos y F11/WhatsApp no se modificó.

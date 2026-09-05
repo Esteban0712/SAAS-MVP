@@ -2,6 +2,8 @@
 
 Frontend responsive del MVP de Deenova. Incluye autenticación real por cookie, áreas protegidas USER/PLATFORM y gestión tenant de usuarios, roles, permisos y clientes.
 
+Fase 12 añade `/platform/businesses`, `/platform/businesses/new` y `/platform/businesses/:id`: listado, filtros, paginación, alta completa, detalle, edición administrativa, counts, branches, timestamps y suspend/reactivate con confirmación. Usa el shell PLATFORM, TanStack Query, React Hook Form, Zod, shadcn y el cliente API existente; slug/status/settings respetan sus restricciones de solo creación, acción dedicada y solo lectura.
+
 ## Stack
 
 - React 19.2.8 y React DOM 19.2.8.

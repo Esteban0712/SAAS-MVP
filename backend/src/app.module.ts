@@ -7,6 +7,7 @@ import { CustomersModule } from './customers/customers.module';
 import { EmployeesModule } from './employees/employees.module';
 import { HealthModule } from './health/health.module';
 import { PermissionsModule } from './permissions/permissions.module';
+import { PlatformBusinessesModule } from './platform-businesses/platform-businesses.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RolesModule } from './roles/roles.module';
 import { ServicesModule } from './services/services.module';
@@ -22,6 +23,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     RolesModule,
     PermissionsModule,
+    PlatformBusinessesModule,
     CustomersModule,
     EmployeesModule,
     ServicesModule,

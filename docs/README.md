@@ -63,3 +63,23 @@ Las horas semanales se interpretan en la zona IANA del Business y se convierten 
 Create, edit y reschedule son atómicos. AppointmentService captura snapshots de nombre, duración y precio decimal. Una exclusion constraint PostgreSQL es la garantía final frente a doble reserva, con 409 saneado; RESCHEDULE bloquea además la cita original para impedir sucesoras concurrentes. Todas las relaciones se validan dentro del tenant y `businessId` procede exclusivamente del principal.
 
 La Agenda diaria incluye navegación por fecha, filtro de Employee, cards responsive, detalle, create/edit/reschedule/status/cancel y refresco de listado/availability ante mutaciones o conflictos. Limitaciones conocidas: sin holidays, time-off complejo, recurrencia, drag/drop, FullCalendar ni disponibilidad basada en excepciones por fecha.
+
+## Fase 12 — Administración Platform de negocios
+
+`PlatformUser` es una identidad global independiente de `User`: no contiene `businessId`, inicia sesión en `/api/platform/auth/login` y accede a `/api/platform/*` mediante `AuthGuard` y `PlatformGuard`. Un User tenant recibe 403 en esa superficie. Solo un PlatformUser `ACTIVE` puede autenticarse y conservar sesión; `PlatformUserStatus` también contiene `SUSPENDED` y `DISABLED`.
+
+Business conserva nombre, slug único, status, timezone, moneda, máximo de usuarios, datos administrativos, `settingsJson` y timestamps. `BusinessStatus` es `TRIAL | ACTIVE | PAYMENT_PENDING | SUSPENDED | CANCELLED`. Branch pertenece al Business; el alta crea una Branch principal activa porque las operaciones tenant dependen de sucursal.
+
+Create es una transacción Prisma única: Business `ACTIVE`, Branch principal, Role `ADMIN` system-default con el catálogo actual de Permission, User owner tenant y AuditLog. La contraseña inicial cumple requisitos fuertes, solo se persiste como hash Argon2id y el User queda con `mustChangePassword=true`; no existe contraseña default. El cliente nunca envía `businessId`.
+
+El slug se normaliza a minúsculas ASCII con guiones y queda inmutable. Timezone se valida como IANA mediante Luxon. Update admite nombre, timezone, moneda, máximo de usuarios, logo, identificación fiscal, dirección y teléfono; `settingsJson` es read-only. Status cambia solo mediante suspend/reactivate.
+
+Suspend exige `ACTIVE` y cambia a `SUSPENDED`; reactivate exige `SUSPENDED` y vuelve a `ACTIVE`. No se borra ni desactiva información relacionada. Como Auth reconstruye el principal desde PostgreSQL en cada request, una sesión tenant existente recibe 401 al suspender y recupera acceso al reactivar. Orígenes inválidos responden 409.
+
+Create, update, suspend y reactivate escriben AuditLog dentro de su transacción, con PlatformUser actor, Business, acción y snapshots. El detalle devuelve Branches y counts de branches, users, customers, employees, services, appointments y sales; el listado no calcula counts por fila.
+
+API: `GET/POST /api/platform/businesses`, `GET/PATCH /api/platform/businesses/:id`, `POST /api/platform/businesses/:id/suspend` y `POST /api/platform/businesses/:id/reactivate`. El listado admite search, status, page y pageSize. Los errores se sanean como 400/401/403/404/409 sin detalles Prisma.
+
+El frontend implementa `/platform/businesses`, `/platform/businesses/new` y `/platform/businesses/:id` con shell PLATFORM, TanStack Query, React Hook Form, Zod y shadcn. Incluye listado, filtros, paginación, create, detail/update, confirmación de transiciones, counts, branches, timestamps, settings read-only, estados loading/empty/error/success y layout responsive.
+
+Las pruebas cubren separación Platform/Tenant, atomicidad, slug/timezone, admin/Role/Permission, AuditLog, counts y suspensión/reactivación con sesión existente. Limitaciones: sin invitación/reset de contraseña, UI de historial AuditLog ni restauración a un estado distinto de ACTIVE. Billing, planes y subscriptions quedan diferidos. F11/WhatsApp permanece aplazada e intacta.
