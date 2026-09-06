@@ -58,11 +58,22 @@ export function validateEnvironment(
   for (const [key, fallback] of [
     ['LOGIN_RATE_LIMIT_MAX', '10'],
     ['LOGIN_RATE_LIMIT_WINDOW_MS', '60000'],
+    ['TRUST_PROXY_HOPS', '0'],
   ] as const) {
     const value = Number(environment[key] ?? fallback);
-    if (!Number.isSafeInteger(value) || value <= 0) {
-      throw new Error(`${key} must be a positive integer`);
+    const valid =
+      key === 'TRUST_PROXY_HOPS'
+        ? Number.isSafeInteger(value) && value >= 0 && value <= 10
+        : Number.isSafeInteger(value) && value > 0;
+    if (!valid) {
+      throw new Error(`${key} has an invalid value`);
     }
+  }
+  if (
+    nodeEnv === 'production' &&
+    Number(environment.TRUST_PROXY_HOPS ?? 0) < 1
+  ) {
+    throw new Error('TRUST_PROXY_HOPS must trust the production reverse proxy');
   }
 
   return {

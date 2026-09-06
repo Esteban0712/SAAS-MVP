@@ -1,0 +1,139 @@
+DEENOVA MVP - FASE 14 - CIERRE FINAL
+=====================================
+
+ESTADO EXACTO
+-------------
+PREPARADA PARA STAGING
+LOCAL VALIDATED
+STAGING NOT DEPLOYED
+PRODUCTION NOT DEPLOYED
+
+No se ha creado ni configurado infraestructura externa. No se ha realizado
+ningun despliegue en staging o produccion.
+
+ARQUITECTURA FINAL
+------------------
+- Despliegue MVP en un host Linux mediante Docker Compose.
+- Caddy es el unico punto publicado en 80/443 y sirve React por HTTPS.
+- Caddy aplica fallback SPA y enruta /api al backend NestJS.
+- API sin puerto publicado, ejecutada como usuario no-root y conectada a las
+  redes edge y data.
+- PostgreSQL 16 sin puerto publicado, en la red interna data y con volumen
+  persistente.
+- Servicio migrate one-shot para ejecutar prisma migrate deploy antes de
+  actualizar la aplicacion.
+- Frontend y API usan same-origin; el frontend se compila con VITE_API_URL=/api.
+
+ARTEFACTOS CREADOS O AJUSTADOS
+-----------------------------
+- .dockerignore
+- backend/Dockerfile
+- frontend/Dockerfile
+- frontend/Caddyfile
+- infrastructure/docker-compose.prod.yml
+- infrastructure/.env.prod.example
+- infrastructure/scripts/deploy.sh
+- infrastructure/scripts/backup-postgres.sh
+- infrastructure/scripts/restore-postgres.sh
+- infrastructure/scripts/check-monitoring.sh
+- infrastructure/DEPLOYMENT.md
+- infrastructure/RUNBOOK.md
+- configuracion TRUST_PROXY_HOPS y comando db:deploy del backend
+- ejemplos env y exclusiones Git para env locales, dumps y backups
+
+DOCKER / COMPOSE / CADDY
+------------------------
+- Dockerfiles multi-stage validados mediante builds reales.
+- Backend incluye OpenSSL requerido por Prisma y usa usuario node en runtime.
+- Caddy sirve el build estatico, redirige HTTP a HTTPS, soporta SPA refresh y
+  enruta /api/* a api:3000.
+- Compose define web, api, postgres y migrate, healthchecks, redes separadas,
+  volumenes persistentes, restart policies y rotacion json-file de 10 MiB x 5.
+- Solo web publica puertos. API 3000 y PostgreSQL 5432 no se publican.
+
+PRISMA MIGRATE DEPLOY
+---------------------
+- Ejecutado realmente sobre una DB Docker local aislada.
+- Tres migraciones aplicadas correctamente.
+- Segunda ejecucion sin migraciones pendientes.
+- prisma validate, generate y migrate status: PASS.
+- No se crearon ni modificaron migraciones.
+
+BACKUPS Y RESTORE
+-----------------
+- Backup real de la DB local aislada con pg_dump custom, compresion 9 y nombre
+  UTC.
+- Catalogo validado con pg_restore --list y checksum SHA-256 verificado.
+- Retencion implementada: 7 diarios, 4 semanales y 3 mensuales.
+- Hook externo configurable sin proveedor ni destino inventado.
+- Restore real ejecutado solo sobre deenova_f14_restore_validation.
+- Protecciones de nombre, entorno, confirmacion y DB origen verificadas.
+- Restore comprobado: marcador persistente, 3 migraciones y 21 tablas.
+- Los backups y el env de validacion local permanecen ignorados por Git.
+
+MONITORING Y LOGGING
+--------------------
+- Check MVP validado para API/DB health, web health, PostgreSQL, estado,
+  restarts, CPU, RAM, disco, errores backend y antiguedad/checksum del backup.
+- Ejecucion local del monitoring: PASS; backup detectado con antiguedad 0h.
+- Logs por stdout/stderr con rotacion Docker.
+- Sin passwords, JWT, cookies ni secretos configurados en logs o assets web.
+- Runbook cubre deploy, rollback, DB/app down, disco lleno, backup failure,
+  restart loop, TLS, backup y restore seguro.
+
+VALIDACION LOCAL COMPLETA
+-------------------------
+- Docker builds web/api/migrate: PASS.
+- Compose config: PASS.
+- Stack production-like local aislado: PASS.
+- Health API interno y /api/health via Caddy: HTTP 200.
+- Frontend HTTPS: HTTP 200; HTTP redirige a HTTPS con 308.
+- SPA refresh: HTTP 200 con index.html.
+- Persistencia DB tras restart: PASS.
+- Reinicio/parada graceful basico: PASS; servicios recuperaron health.
+- Backup, dump, checksum, restore y comprobacion posterior: PASS.
+- Monitoring y revision de logs: PASS.
+- Backend lint/build: PASS.
+- Backend unit: 17 suites, 58 tests, todos PASS.
+- Backend e2e: 10 suites, 46 tests, todos PASS.
+- Frontend lint/build: PASS; tres warnings no bloqueantes preexistentes.
+- Frontend runtime sin source maps productivos.
+- Secret review y git diff --check: PASS.
+
+CORRECCIONES REALIZADAS DURANTE LA VALIDACION
+---------------------------------------------
+- Se proporciono una DATABASE_URL ficticia solo en la etapa build para que
+  Prisma 7 pueda cargar prisma.config.ts durante prisma generate. No llega a
+  runtime.
+- Se instalo OpenSSL minimo en las etapas backend que ejecutan Prisma/runtime.
+- Las imagenes se reconstruyeron y Prisma dejo de emitir el warning OpenSSL.
+
+RIESGOS ACEPTADOS
+-----------------
+- Cuatro advisories high de dependencias backend ya documentados; no existe
+  correccion compatible aprobada sin upgrade incompatible/major.
+- Warning deprecado de pg en pruebas concurrentes, sin fallos de test.
+- Bundle frontend superior a 500 kB, expresamente no bloqueante.
+- Rate limiting y monitoring son single-host/MVP.
+- El host local mostro 95% de uso de disco durante la validacion.
+
+PREREQUISITOS EXTERNOS PENDIENTES
+---------------------------------
+- VPS Linux y sistema operativo parcheado.
+- Dominio/hostnames y DNS reales.
+- Acceso SSH y reglas de firewall.
+- Secretos reales gestionados fuera de Git.
+- Destino externo de backups y sus credenciales.
+- Scheduler cron/systemd para backup y monitoring.
+- Proveedor y canal de alertas.
+- RPO y RTO acordados.
+- Restore drill real con procedimientos operativos aprobados.
+- Smoke real de staging, incluyendo HTTPS, auth, tenancy y logs.
+
+GIT Y DESPLIEGUE
+----------------
+- Commit final: chore: prepare production infrastructure
+- Push normal: confirmado a origin/main; no force push.
+- Estado Git de cierre: HEAD igual a origin/main y working tree limpio.
+- No se desplego staging ni produccion.
+- F11/WhatsApp y billing permanecen intactos y fuera de alcance.
