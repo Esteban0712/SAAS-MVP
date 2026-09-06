@@ -263,6 +263,17 @@ export class SalesService {
       )
         throw new ConflictException('Sale does not accept payments');
       const status = input.status ?? PaymentStatus.COMPLETED;
+      const aggregate = await tx.payment.aggregate({
+        where: { saleId: id, status: PaymentStatus.COMPLETED },
+        _sum: { amount: true },
+      });
+      const previouslyPaid = aggregate._sum.amount ?? new Prisma.Decimal(0);
+      if (
+        status === PaymentStatus.COMPLETED &&
+        previouslyPaid.plus(amount).gt(sale.total)
+      ) {
+        throw new ConflictException('Payment exceeds outstanding balance');
+      }
       const payment = await tx.payment.create({
         data: {
           saleId: id,
@@ -274,11 +285,10 @@ export class SalesService {
           paidAt: status === PaymentStatus.COMPLETED ? new Date() : null,
         },
       });
-      const aggregate = await tx.payment.aggregate({
-        where: { saleId: id, status: PaymentStatus.COMPLETED },
-        _sum: { amount: true },
-      });
-      const amountPaid = aggregate._sum.amount ?? new Prisma.Decimal(0);
+      const amountPaid =
+        status === PaymentStatus.COMPLETED
+          ? previouslyPaid.plus(amount)
+          : previouslyPaid;
       if (amountPaid.gte(sale.total) && sale.status !== SaleStatus.PAID)
         await tx.sale.update({
           where: { id, businessId },

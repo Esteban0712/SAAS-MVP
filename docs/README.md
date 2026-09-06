@@ -1,5 +1,7 @@
 # Documentación
 
+El modelo consolidado de seguridad, los prerrequisitos de staging y los riesgos aceptados de Fase 13 se documentan en [security.md](security.md).
+
 ## Decisiones de autenticación y autorización
 
 - Las identidades USER y PLATFORM usan endpoints de login separados.
@@ -74,7 +76,7 @@ Create es una transacción Prisma única: Business `ACTIVE`, Branch principal, R
 
 El slug se normaliza a minúsculas ASCII con guiones y queda inmutable. Timezone se valida como IANA mediante Luxon. Update admite nombre, timezone, moneda, máximo de usuarios, logo, identificación fiscal, dirección y teléfono; `settingsJson` es read-only. Status cambia solo mediante suspend/reactivate.
 
-Suspend exige `ACTIVE` y cambia a `SUSPENDED`; reactivate exige `SUSPENDED` y vuelve a `ACTIVE`. No se borra ni desactiva información relacionada. Como Auth reconstruye el principal desde PostgreSQL en cada request, una sesión tenant existente recibe 401 al suspender y recupera acceso al reactivar. Orígenes inválidos responden 409.
+Suspend exige `ACTIVE` y cambia a `SUSPENDED`; reactivate exige `SUSPENDED` y vuelve a `ACTIVE`. No se borra ni desactiva información relacionada. Como Auth reconstruye el principal desde PostgreSQL en cada request, una sesión tenant existente recibe 401 al suspender y recupera acceso al reactivar. Orígenes inválidos responden 403.
 
 Create, update, suspend y reactivate escriben AuditLog dentro de su transacción, con PlatformUser actor, Business, acción y snapshots. El detalle devuelve Branches y counts de branches, users, customers, employees, services, appointments y sales; el listado no calcula counts por fila.
 

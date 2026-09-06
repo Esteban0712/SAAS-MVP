@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { parseDurationMilliseconds } from '../config/configuration';
 
 @Injectable()
 export class AuthCookieService {
   private readonly cookieName: string;
   private readonly production: boolean;
+  private readonly maxAge: number;
 
   constructor(configService: ConfigService) {
     this.cookieName = configService.get<string>(
@@ -13,6 +15,9 @@ export class AuthCookieService {
       'deenova_session',
     );
     this.production = configService.get<string>('NODE_ENV') === 'production';
+    this.maxAge = parseDurationMilliseconds(
+      configService.get<string>('JWT_EXPIRES_IN', '8h'),
+    );
   }
 
   get name(): string {
@@ -25,7 +30,7 @@ export class AuthCookieService {
       secure: this.production,
       sameSite: 'lax',
       path: '/api',
-      maxAge: 8 * 60 * 60 * 1_000,
+      maxAge: this.maxAge,
     });
   }
 

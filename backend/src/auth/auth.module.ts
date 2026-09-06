@@ -10,6 +10,8 @@ import { PermissionsGuard } from './permissions.guard';
 import { PlatformGuard } from './platform.guard';
 import { PlatformAuthController } from './platform-auth.controller';
 import { TenantGuard } from './tenant.guard';
+import { LoginRateLimitGuard } from './login-rate-limit.guard';
+import { LoginRateLimitService } from './login-rate-limit.service';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { TenantGuard } from './tenant.guard';
     TenantGuard,
     PlatformGuard,
     PermissionsGuard,
+    LoginRateLimitService,
+    LoginRateLimitGuard,
   ],
   exports: [
     JwtModule,

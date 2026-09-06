@@ -45,7 +45,7 @@ El frontend usa normalmente `http://localhost:5173` y el backend `http://localho
 - USER tenant y PLATFORM son identidades independientes.
 - El JWT nunca se entrega a código frontend ni se guarda en web storage.
 - La cookie de sesión es `HttpOnly`, `SameSite=Lax`, limitada a `/api` y `Secure` en producción.
-- El JWT expira según `JWT_EXPIRES_IN` (`8h` por defecto); la cookie local tiene una duración máxima de 8 horas.
+- El JWT expira según `JWT_EXPIRES_IN` (`8h` por defecto) y la cookie usa la misma duración.
 - CORS permite credenciales únicamente desde `FRONTEND_URL`.
 - Toda mutación exige que el header `Origin` coincida exactamente con `FRONTEND_URL`, como defensa CSRF adicional.
 - El principal se reconstruye desde la base de datos en cada request. Estado, negocio, rol y permisos actuales se vuelven a comprobar.
@@ -89,10 +89,10 @@ El frontend usa normalmente `http://localhost:5173` y el backend `http://localho
 - `/app/agenda` ofrece agenda diaria responsive, detalle, creación, edición, reprogramación, estados y selección de availability real.
 - Limitación actual: no existen holidays, time-off complejo ni excepciones de jornada por fecha.
 
-Consulta [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md) y [docs/README.md](docs/README.md) para contratos, pruebas y limitaciones.
+Consulta [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md), [docs/README.md](docs/README.md) y [docs/security.md](docs/security.md) para contratos, seguridad, pruebas y limitaciones.
 
 ## Estado
 
-Fase actual: **Fase 12 — administración Platform de negocios**. Billing y planes quedan diferidos; F11/WhatsApp permanece aplazada.
+Fase actual: **Fase 13 — seguridad, tests y hardening completados**. Billing, F11/WhatsApp, F14 y despliegue permanecen diferidos.
 
 Nunca deben guardarse secretos, tokens, contraseñas reales ni archivos `.env` en Git.

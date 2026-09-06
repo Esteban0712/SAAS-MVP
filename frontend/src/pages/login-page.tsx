@@ -67,6 +67,8 @@ export function LoginPage() {
             password: values.password,
           }),
     onSuccess: (principal) => {
+      // Never carry cached data across tenant/platform identities.
+      queryClient.clear()
       queryClient.setQueryData(sessionQueryKey, principal)
       const requested = (location.state as { from?: string } | null)?.from
       const safeRequested =

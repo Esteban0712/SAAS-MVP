@@ -1,9 +1,17 @@
-import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthCookieService } from './auth-cookie.service';
 import { AuthService } from './auth.service';
 import type { AuthenticatedPrincipal } from './auth.types';
 import { PlatformLoginDto } from './dto/platform-login.dto';
+import { LoginRateLimitGuard } from './login-rate-limit.guard';
 
 @Controller('platform/auth')
 export class PlatformAuthController {
@@ -14,6 +22,7 @@ export class PlatformAuthController {
 
   @Post('login')
   @HttpCode(200)
+  @UseGuards(LoginRateLimitGuard)
   async login(
     @Body() input: PlatformLoginDto,
     @Res({ passthrough: true }) response: Response,

@@ -1,15 +1,18 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as argon2 from 'argon2';
-import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { configureApplication } from '../src/app.setup';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
+  let jwt: JwtService;
   let originalTenantPassword: { id: string; passwordHash: string } | undefined;
   let originalPlatformPassword:
     { id: string; passwordHash: string } | undefined;
@@ -25,18 +28,11 @@ describe('Auth (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api');
-    app.use(cookieParser());
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
+    app = moduleFixture.createNestApplication({ bodyParser: false });
+    configureApplication(app, app.get(ConfigService));
     await app.init();
     prisma = app.get(PrismaService);
+    jwt = app.get(JwtService);
 
     originalTenantPassword =
       (await prisma.user.findFirst({
@@ -143,6 +139,30 @@ describe('Auth (e2e)', () => {
     await request(app.getHttpServer()).get('/api/auth/me').expect(401);
   });
 
+  it('rejects invalid and expired session tokens', async () => {
+    await request(app.getHttpServer())
+      .get('/api/auth/me')
+      .set('Cookie', 'deenova_session=not-a-valid-jwt')
+      .expect(401);
+
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: originalTenantPassword!.id },
+      select: { businessId: true },
+    });
+    const expired = await jwt.signAsync(
+      {
+        sub: originalTenantPassword!.id,
+        actorType: 'USER',
+        businessId: user.businessId,
+      },
+      { expiresIn: -1 },
+    );
+    await request(app.getHttpServer())
+      .get('/api/auth/me')
+      .set('Cookie', `deenova_session=${expired}`)
+      .expect(401);
+  });
+
   it('logs in a platform actor without exposing a businessId', async () => {
     await request(app.getHttpServer())
       .post('/api/platform/auth/login')
@@ -164,5 +184,22 @@ describe('Auth (e2e)', () => {
       .post('/api/auth/logout')
       .set('Origin', 'https://untrusted.example')
       .expect(403);
+  });
+
+  it('sets security headers and rejects oversized JSON bodies', async () => {
+    const health = await request(app.getHttpServer())
+      .get('/api/health')
+      .expect(200);
+    expect(health.headers['x-content-type-options']).toBe('nosniff');
+    expect(health.headers['x-frame-options']).toBe('DENY');
+    expect(health.headers['content-security-policy']).toBeUndefined();
+    expect(health.headers['x-powered-by']).toBeUndefined();
+
+    await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .set('Origin', frontendOrigin)
+      .set('Content-Type', 'application/json')
+      .send(JSON.stringify({ padding: 'x'.repeat(300 * 1024) }))
+      .expect(413);
   });
 });

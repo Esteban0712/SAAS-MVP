@@ -24,6 +24,7 @@ describe('AuthController and auth cookie', () => {
   const config = {
     get: jest.fn((key: string, fallback?: string) => {
       if (key === 'NODE_ENV') return 'development';
+      if (key === 'JWT_EXPIRES_IN') return '30m';
       return fallback;
     }),
   };
@@ -43,7 +44,7 @@ describe('AuthController and auth cookie', () => {
     jest.clearAllMocks();
   });
 
-  it('sets the JWT in an HttpOnly eight-hour cookie after login', async () => {
+  it('sets the JWT in an HttpOnly cookie synchronized with JWT expiry', async () => {
     await expect(
       controller.login(
         {
@@ -63,7 +64,7 @@ describe('AuthController and auth cookie', () => {
         secure: false,
         sameSite: 'lax',
         path: '/api',
-        maxAge: 28_800_000,
+        maxAge: 1_800_000,
       },
     );
   });

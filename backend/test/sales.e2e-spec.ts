@@ -257,6 +257,12 @@ describe('Sales, payments and receipts (e2e)', () => {
       .send({ status: 'PENDING_PAYMENT', notes: 'Ready' })
       .expect(200);
     expect(pending.body.status).toBe('PENDING_PAYMENT');
+    await request(app.getHttpServer())
+      .post(`/api/sales/${created.body.id}/payments`)
+      .set('Origin', origin)
+      .set('Cookie', cookie)
+      .send({ method: 'CARD', amount: '25.51', status: 'COMPLETED' })
+      .expect(409);
     const paid = await request(app.getHttpServer())
       .post(`/api/sales/${created.body.id}/payments`)
       .set('Origin', origin)
@@ -295,5 +301,50 @@ describe('Sales, payments and receipts (e2e)', () => {
       .get(`/api/sales/${created.body.id}/receipt`)
       .set('Cookie', cookie)
       .expect(200);
+  });
+
+  it('serializes concurrent payments and permits only the amount outstanding', async () => {
+    const cookie = await login('demo-business-a');
+    const created = await request(app.getHttpServer())
+      .post('/api/sales')
+      .set('Origin', origin)
+      .set('Cookie', cookie)
+      .send({
+        branchId: branchA,
+        items: [
+          {
+            type: 'OTHER',
+            description: 'Concurrent',
+            quantity: 1,
+            unitPrice: '25.50',
+          },
+        ],
+      })
+      .expect(201);
+    saleIds.push(String(created.body.id));
+    await request(app.getHttpServer())
+      .patch(`/api/sales/${created.body.id}`)
+      .set('Origin', origin)
+      .set('Cookie', cookie)
+      .send({ status: 'PENDING_PAYMENT' })
+      .expect(200);
+
+    const responses = await Promise.all(
+      [1, 2].map(() =>
+        request(app.getHttpServer())
+          .post(`/api/sales/${created.body.id}/payments`)
+          .set('Origin', origin)
+          .set('Cookie', cookie)
+          .send({ method: 'CARD', amount: '20.00', status: 'COMPLETED' }),
+      ),
+    );
+    expect(responses.map(({ status }) => status).sort()).toEqual([201, 409]);
+
+    const payments = await request(app.getHttpServer())
+      .get(`/api/sales/${created.body.id}/payments`)
+      .set('Cookie', cookie)
+      .expect(200);
+    expect(payments.body).toHaveLength(1);
+    expect(payments.body[0].amount).toBe('20.00');
   });
 });

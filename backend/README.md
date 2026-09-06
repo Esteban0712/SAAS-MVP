@@ -15,11 +15,13 @@ Variables relevantes:
 - `JWT_EXPIRES_IN`: expiración JWT, `8h` por defecto.
 - `AUTH_COOKIE_NAME`: nombre de la cookie HttpOnly.
 - `FRONTEND_URL`: único origin permitido por CORS y para mutaciones.
+- `LOGIN_RATE_LIMIT_MAX`: intentos de login permitidos por IP/ruta y ventana; `10` por defecto.
+- `LOGIN_RATE_LIMIT_WINDOW_MS`: ventana del rate limiter en memoria; `60000` por defecto.
 - `DEV_SEED_PASSWORD`: contraseña ficticia usada por el seed DEV.
 
 ## Autenticación y seguridad
 
-Las contraseñas se almacenan con Argon2id. El JWT se firma en backend y viaja en una cookie `HttpOnly`, `SameSite=Lax`, con path `/api`, `Secure` en producción y máximo de 8 horas. No se devuelve en el cuerpo de las respuestas.
+Las contraseñas se almacenan con Argon2id. El JWT se firma en backend y viaja en una cookie `HttpOnly`, `SameSite=Lax`, con path `/api` y `Secure` en producción. La cookie comparte la duración configurada en `JWT_EXPIRES_IN`. No se devuelve en el cuerpo de las respuestas.
 
 La API configura CORS con credenciales para `FRONTEND_URL`. Además, toda petición no segura (`POST`, `PATCH`, etc.) debe incluir un `Origin` idéntico a `FRONTEND_URL`; esto complementa `SameSite=Lax` como estrategia CSRF.
 

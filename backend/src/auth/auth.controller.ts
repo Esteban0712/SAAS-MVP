@@ -14,6 +14,7 @@ import { AuthService } from './auth.service';
 import type { AuthenticatedPrincipal } from './auth.types';
 import { CurrentPrincipal } from './current-principal.decorator';
 import { TenantLoginDto } from './dto/tenant-login.dto';
+import { LoginRateLimitGuard } from './login-rate-limit.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +25,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
+  @UseGuards(LoginRateLimitGuard)
   async login(
     @Body() input: TenantLoginDto,
     @Res({ passthrough: true }) response: Response,

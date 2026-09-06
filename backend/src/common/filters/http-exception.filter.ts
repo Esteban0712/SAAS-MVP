@@ -24,17 +24,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = context.getResponse<Response>();
     const request = context.getRequest<Request>();
     const isHttpException = exception instanceof HttpException;
+    const isPayloadTooLarge = this.isPayloadTooLarge(exception);
     const statusCode = isHttpException
       ? exception.getStatus()
-      : HttpStatus.INTERNAL_SERVER_ERROR;
+      : isPayloadTooLarge
+        ? HttpStatus.PAYLOAD_TOO_LARGE
+        : HttpStatus.INTERNAL_SERVER_ERROR;
     const details = isHttpException
       ? this.getErrorResponse(exception)
-      : {
-          message: 'Internal server error',
-          error: 'Internal Server Error',
-        };
+      : isPayloadTooLarge
+        ? { message: 'Payload too large', error: 'Payload Too Large' }
+        : {
+            message: 'Internal server error',
+            error: 'Internal Server Error',
+          };
 
-    if (!isHttpException) {
+    if (!isHttpException && !isPayloadTooLarge) {
       this.logger.error('Unhandled internal server error');
     }
 
@@ -48,6 +53,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
       ...(details.status ? { status: details.status } : {}),
       ...(details.database ? { database: details.database } : {}),
     });
+  }
+
+  private isPayloadTooLarge(exception: unknown): boolean {
+    return (
+      typeof exception === 'object' &&
+      exception !== null &&
+      'type' in exception &&
+      exception.type === 'entity.too.large'
+    );
   }
 
   private getErrorResponse(exception: HttpException): ErrorResponse {
